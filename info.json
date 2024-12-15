@@ -4,5 +4,11 @@
     "title": "Material Storage 2",
     "author": "mad_engineer",
     "factorio_version": "2.0",
-    "description": "Revised version of my mod Material Storage combined with Cloud Crafting. Mod inspired by Applied Energistics 2 from Minecraft. Store items, transport fluids and craft goods wireless"
+    "description": "Revised version of my mod Material Storage combined with Cloud Crafting. This mod inspired by Applied Energistics 2 from Minecraft. Store items, transport fluids and craft goods wireless",
+    "dependencies": [
+        "!material-storage",
+        "!cloud-crafting",
+        "?quality",
+        "?space-age"
+    ]
 }
