@@ -1,4 +1,5 @@
 local GRAPHICS = "__material-storage-2__/graphics/items/"
+local EQUIPMENT = "__material-storage-2__/graphics/equipment/"
 
 local function item (subgroup, itemId, stackSize)
     return {
@@ -19,12 +20,31 @@ local function machine (subgroup, itemId, stackSize)
 end
 
 for itemId, _ in pairs(require("memory-modules")) do
+    local drive = machine("ms-drives", itemId, 1)
+    drive["place_as_equipment_result"] = itemId
     data:extend({
-        machine("ms-drives", itemId, 1)
+        drive,
+        {
+            type = "battery-equipment",
+            name = itemId,
+            sprite = {
+                filename = EQUIPMENT .. itemId .. ".png",
+                width = 128,
+                height = 128,
+                scale = 0.5,
+                priority = "medium"
+            },
+            shape = {width = 2, height = 2, type = "full"},
+            energy_source = {
+                type = "electric", buffer_capacity = "0J", input_flow_limit = "0W",
+                output_flow_limit = "0W", usage_priority = "tertiary"
+            },
+            categories = {"armor"}
+        }
     })
 end
 
-for itemId, digitalFluidId in pairs(require("fluid-map")) do
+for _, digitalFluidId in pairs(require("fluid-map")) do
     data:extend({
         item("ms-fluids", digitalFluidId, 1000)
     })
