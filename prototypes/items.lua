@@ -85,5 +85,26 @@ data:extend({
         },
         art_style = "vanilla",
         requires_beacon_alt_mode = false
+    },
+    {
+        type = "module",
+        name = "ms-material-access-module",
+        icon = GRAPHICS .. "ms-material-access-module.png",
+        icon_size = 64,
+        subgroup = "ms-modules",
+        category = "efficiency",
+        weight = 10000,
+        tier = 1,
+        order = "a[material-access-module]",
+        stack_size = 50,
+        effect = {
+            consumption = 0.5
+        },
+        beacon_tint = {
+            primary = {r = 0.441, g = 0.714, b = 1.000, a = 1.000},
+            secondary = {r = 0.388, g = 0.976, b = 1.000, a = 1.000}
+        },
+        art_style = "vanilla",
+        requires_beacon_alt_mode = false
     }
 })

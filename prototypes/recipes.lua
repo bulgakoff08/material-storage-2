@@ -52,20 +52,20 @@ data:extend({
     recipe("crafting", 1, "ms-cloud-access-module", items("ms-resonating-quartz", 1, "ms-resonating-crystal", 1, "electronic-circuit", 5, "advanced-circuit", 5), items("ms-cloud-access-module", 1)),
     recipe("crafting", 1, "ms-cloud-chest", items("ms-resonating-quartz", 1, "ms-resonating-crystal", 1, "iron-chest", 1), items("ms-cloud-chest", 1)),
     recipe("crafting", 1, "ms-cloud-logistic-chest", items("ms-resonating-quartz", 1, "ms-resonating-crystal", 1, "storage-chest", 1), items("ms-cloud-logistic-chest", 1)),
+    recipe("crafting", 1, "ms-material-access-module", items("ms-resonating-quartz", 1, "ms-resonating-crystal", 1, "advanced-circuit", 5, "processing-unit", 5), items("ms-material-access-module", 1)),
     recipe("crafting", 1, "ms-material-combinator", items("ms-resonating-quartz", 1, "constant-combinator", 1), items("ms-material-combinator", 1)),
     recipe("crafting", 1, "ms-material-hub-chest", items("ms-resonating-quartz", 10, "ms-resonating-crystal", 10, "steel-chest", 5, "processing-unit", 20), items("ms-material-hub-chest", 1)),
     recipe("crafting", 1, "ms-material-logistic-chest", items("ms-resonating-quartz", 1, "ms-resonating-crystal", 1, "buffer-chest", 1), items("ms-material-logistic-chest", 1)),
-    recipe("crafting", 20, "ms-resonating-crystal", items("ms-material-crystal", 1, "advanced-circuit", 5), items("ms-resonating-crystal", 1)),
-    recipe("crafting", 20, "ms-resonating-quartz", items("ms-fine-quartz", 1, "copper-cable", 20), items("ms-resonating-quartz", 1)),
+    recipe("crafting", 20, "ms-resonating-crystal", items("ms-material-crystal", 1, "advanced-circuit", 5), items("ms-resonating-crystal", 1), true),
+    recipe("crafting", 20, "ms-resonating-quartz", items("ms-fine-quartz", 1, "copper-cable", 20), items("ms-resonating-quartz", 1), true),
     {
         type = "recipe",
         name = "ms-fine-quartz",
         icon = GRAPHICS .. "ms-fine-quartz.png",
-        subgroup = "intermediate-product",
+        subgroup = "ms-details",
         category = "advanced-crafting",
         energy_required = 5,
         allow_quality = false,
-        allow_productivity = true,
         ingredients = {
             {type = "item", name = "stone", amount = 10}
         },
@@ -78,11 +78,10 @@ data:extend({
         type = "recipe",
         name = "ms-material-crystal",
         icon = GRAPHICS .. "ms-material-crystal.png",
-        subgroup = "intermediate-product",
+        subgroup = "ms-details",
         category = "advanced-crafting",
         energy_required = 5,
         allow_quality = false,
-        allow_productivity = true,
         ingredients = {
             {type = "item", name = "stone", amount = 10}
         },

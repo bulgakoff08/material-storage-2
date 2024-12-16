@@ -4,25 +4,28 @@
     [x] Material Crystal
     [x] Resonating Quartz
     [x] Resonating Crystal
-[ ] Cloud Crafting Module
-    [ ] Take items from cloud chests, other machines and hard drives
+[ ] Cloud Access Module
+    [ ] Take items from cloud chests and other machines
+[ ] Material Access Module
+    [ ] Take items from hard drives
 [ ] Material Hub Chest
-    [ ] Acts as storage
+    [ ] Hold items if no hard drives
     [ ] Hold hard drives
     [ ] Request items
+    [ ] Put items to hard drives
 [ ] Material Combinator
-    [ ] Statistics of all items
+    [ ] Statistics of all items including hub
     [ ] Hard drives free slots
 [ ] Material Hard Drive A - H
-    [x] 1024 slots
+    [x] 1024 slots (configurable)
     [x] Placeable as chest
     [x] Insertable into armor
-    [ ] Refill inventory
-    [ ] Trash slots place items on a hard drive
+        [ ] Refill inventory
+        [ ] Trash slots place items on a hard drive
 [ ] Material Logistic Chest
     [ ] Request items from hard drives
     [ ] Put on hard drives or material chest
-    [ ] Works as buffer chest
+    [x] Works as buffer chest
 [ ] Cloud Chest
     [ ] Filters to mark outputs
 [ ] Cloud Logistic Chest
