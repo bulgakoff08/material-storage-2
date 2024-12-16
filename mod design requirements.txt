@@ -1,0 +1,30 @@
+[ ] Quality Support
+[ ] Intermediates
+    [x] Fine Quartz
+    [x] Material Crystal
+    [x] Resonating Quartz
+    [x] Resonating Crystal
+[ ] Cloud Crafting Module
+    [ ] Take items from cloud chests, other machines and hard drives
+[ ] Material Hub Chest
+    [ ] Acts as storage
+    [ ] Hold hard drives
+    [ ] Request items
+[ ] Material Combinator
+    [ ] Statistics of all items
+    [ ] Hard drives free slots
+[ ] Material Hard Drive A - H
+    [x] 1024 slots
+    [x] Placeable as chest
+    [x] Insertable into armor
+    [ ] Refill inventory
+    [ ] Trash slots place items on a hard drive
+[ ] Material Logistic Chest
+    [ ] Request items from hard drives
+    [ ] Put on hard drives or material chest
+    [ ] Works as buffer chest
+[ ] Cloud Chest
+    [ ] Filters to mark outputs
+[ ] Cloud Logistic Chest
+    [ ] Filters to mark outputs
+    [x] Works as logistic storage chest

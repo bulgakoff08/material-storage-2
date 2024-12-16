@@ -21,6 +21,7 @@ return {
         if itemId == "sulfuric-acid" then
             return "fluid"
         end
+        -- TODO: add here fluids from SA
         return "item"
     end
 }
