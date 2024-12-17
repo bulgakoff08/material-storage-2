@@ -56,6 +56,7 @@ data:extend({
     machine("ms-chests", "ms-cloud-logistic-chest", 50),
     machine("ms-chests", "ms-material-combinator", 50),
     machine("ms-chests", "ms-material-hub-chest", 50),
+    machine("ms-chests", "ms-material-chest", 50),
     machine("ms-chests", "ms-material-logistic-chest", 50),
 
     -- details
