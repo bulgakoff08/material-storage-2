@@ -20,10 +20,33 @@ local function machine (subgroup, itemId, stackSize)
 end
 
 for itemId, _ in pairs(require("memory-modules")) do
-    local drive = machine("ms-drives", itemId, 1)
-    drive["place_as_equipment_result"] = itemId
+    -- local drive = machine("ms-drives", itemId, 1)
+    -- drive["place_as_equipment_result"] = itemId
     data:extend({
-        drive,
+        -- drive,
+        {
+            type = "module",
+            name = itemId,
+            icon = GRAPHICS .. itemId .. ".png",
+            icon_size = 64,
+            subgroup = "ms-modules",
+            category = "efficiency",
+            weight = 10000,
+            tier = 1,
+            order = "a[" .. itemId .. "]",
+            stack_size = 1,
+            effect = {
+                consumption = 0.5
+            },
+            beacon_tint = {
+                primary = {r = 0.441, g = 0.714, b = 1.000, a = 1.000},
+                secondary = {r = 0.388, g = 0.976, b = 1.000, a = 1.000}
+            },
+            art_style = "vanilla",
+            requires_beacon_alt_mode = false,
+            place_result = itemId,
+            place_as_equipment_result = itemId
+        },
         {
             type = "battery-equipment",
             name = itemId,
