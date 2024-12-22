@@ -341,88 +341,93 @@ data:extend({
         },
         circuit_connector = circuit_connector_definitions["chest"],
         circuit_wire_max_distance = default_circuit_wire_max_distance
-    },
-    {
-        type = "logistic-container",
-        name = "ms-material-logistic-chest",
-        icon = GRAPHICS .. "ms-material-logistic-chest.png",
-        icon_size = 64,
-        flags = {"placeable-player", "player-creation"},
-        minable = {mining_time = 0.5, result = "ms-material-logistic-chest"},
-        max_health = 350,
-        corpse = "iron-chest-remnants",
-        dying_explosion = "buffer-chest-explosion",
-        collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
-        selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
-        resistances = {
-            {type = "fire", percent = 90},
-            {type = "impact", percent = 60}
-        },
-        fast_replaceable_group = "container",
-        inventory_size = 48,
-        inventory_type = "with_filters_and_bar",
-        gui_mode = "none",
-        logistic_mode = "buffer",
-        open_sound = {filename = "__base__/sound/metallic-chest-open.ogg", volume=0.43},
-        close_sound = {filename = "__base__/sound/metallic-chest-close.ogg", volume = 0.43},
-        animation_sound = {
-            {filename = "__base__/sound/passive-provider-chest-open-1.ogg", volume = 0.3},
-            {filename = "__base__/sound/passive-provider-chest-open-2.ogg", volume = 0.3},
-            {filename = "__base__/sound/passive-provider-chest-open-3.ogg", volume = 0.3},
-            {filename = "__base__/sound/passive-provider-chest-open-4.ogg", volume = 0.3},
-            {filename = "__base__/sound/passive-provider-chest-open-5.ogg", volume = 0.3}
-        },
-        vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
-        opened_duration = 7,
-        animation = {
-            layers = {
-                {
-                    filename = ENTITIES .. "ms-material-logistic-chest.png",
-                    priority = "extra-high",
-                    width = 66,
-                    height = 72,
-                    frame_count = 7,
-                    shift = util.by_pixel(0, -2),
-                    scale = 0.5
-                },
-                {
-                    filename = ENTITIES .. "large-chest-shadow.png",
-                    priority = "extra-high",
-                    width = 112,
-                    height = 46,
-                    repeat_count = 7,
-                    shift = util.by_pixel(12, 4.5),
-                    draw_as_shadow = true,
-                    scale = 0.5
-                }
-            }
-        },
-        circuit_connector = circuit_connector_definitions["chest"],
-        circuit_wire_max_distance = default_circuit_wire_max_distance
-    },
-    generateMaterialCombinator({
-        type = "constant-combinator",
-        name = "ms-material-combinator",
-        icon = GRAPHICS .. "ms-material-combinator.png",
-        icon_size = 64,
-        flags = {"placeable-neutral", "player-creation"},
-        minable = {mining_time = 0.1, result = "ms-material-combinator"},
-        max_health = 120,
-        corpse = "constant-combinator-remnants",
-        dying_explosion = "constant-combinator-explosion",
-        collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
-        selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
-        fast_replaceable_group = "constant-combinator",
-        activity_led_light_offsets = {
-            {0.296875, -0.40625},
-            {0.25, -0.03125},
-            {-0.296875, -0.078125},
-            {-0.21875, -0.46875}
-        },
-        item_slot_count = 2000,
-        circuit_wire_max_distance = default_circuit_wire_max_distance,
-        vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
-        open_sound = {filename = "__base__/sound/machine-open.ogg", volume = 0.85},
-        close_sound = {filename = "__base__/sound/machine-close.ogg", volume = 0.75}
-    }),
+    }
 })
+
+if not mods["material-storage"] then
+    data:extend({
+        {
+            type = "logistic-container",
+            name = "ms-material-logistic-chest",
+            icon = GRAPHICS .. "ms-material-logistic-chest.png",
+            icon_size = 64,
+            flags = {"placeable-player", "player-creation"},
+            minable = {mining_time = 0.5, result = "ms-material-logistic-chest"},
+            max_health = 350,
+            corpse = "iron-chest-remnants",
+            dying_explosion = "buffer-chest-explosion",
+            collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
+            selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+            resistances = {
+                {type = "fire", percent = 90},
+                {type = "impact", percent = 60}
+            },
+            fast_replaceable_group = "container",
+            inventory_size = 48,
+            inventory_type = "with_filters_and_bar",
+            gui_mode = "none",
+            logistic_mode = "buffer",
+            open_sound = {filename = "__base__/sound/metallic-chest-open.ogg", volume=0.43},
+            close_sound = {filename = "__base__/sound/metallic-chest-close.ogg", volume = 0.43},
+            animation_sound = {
+                {filename = "__base__/sound/passive-provider-chest-open-1.ogg", volume = 0.3},
+                {filename = "__base__/sound/passive-provider-chest-open-2.ogg", volume = 0.3},
+                {filename = "__base__/sound/passive-provider-chest-open-3.ogg", volume = 0.3},
+                {filename = "__base__/sound/passive-provider-chest-open-4.ogg", volume = 0.3},
+                {filename = "__base__/sound/passive-provider-chest-open-5.ogg", volume = 0.3}
+            },
+            vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
+            opened_duration = 7,
+            animation = {
+                layers = {
+                    {
+                        filename = ENTITIES .. "ms-material-logistic-chest.png",
+                        priority = "extra-high",
+                        width = 66,
+                        height = 72,
+                        frame_count = 7,
+                        shift = util.by_pixel(0, -2),
+                        scale = 0.5
+                    },
+                    {
+                        filename = ENTITIES .. "large-chest-shadow.png",
+                        priority = "extra-high",
+                        width = 112,
+                        height = 46,
+                        repeat_count = 7,
+                        shift = util.by_pixel(12, 4.5),
+                        draw_as_shadow = true,
+                        scale = 0.5
+                    }
+                }
+            },
+            circuit_connector = circuit_connector_definitions["chest"],
+            circuit_wire_max_distance = default_circuit_wire_max_distance
+        },
+        generateMaterialCombinator({
+            type = "constant-combinator",
+            name = "ms-material-combinator",
+            icon = GRAPHICS .. "ms-material-combinator.png",
+            icon_size = 64,
+            flags = {"placeable-neutral", "player-creation"},
+            minable = {mining_time = 0.1, result = "ms-material-combinator"},
+            max_health = 120,
+            corpse = "constant-combinator-remnants",
+            dying_explosion = "constant-combinator-explosion",
+            collision_box = {{-0.35, -0.35}, {0.35, 0.35}},
+            selection_box = {{-0.5, -0.5}, {0.5, 0.5}},
+            fast_replaceable_group = "constant-combinator",
+            activity_led_light_offsets = {
+                {0.296875, -0.40625},
+                {0.25, -0.03125},
+                {-0.296875, -0.078125},
+                {-0.21875, -0.46875}
+            },
+            item_slot_count = 2000,
+            circuit_wire_max_distance = default_circuit_wire_max_distance,
+            vehicle_impact_sound = {filename = "__base__/sound/car-metal-impact.ogg", volume = 0.65},
+            open_sound = {filename = "__base__/sound/machine-open.ogg", volume = 0.85},
+            close_sound = {filename = "__base__/sound/machine-close.ogg", volume = 0.75}
+        })
+    })
+end

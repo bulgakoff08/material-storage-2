@@ -20,10 +20,7 @@ local function machine (subgroup, itemId, stackSize)
 end
 
 for itemId, _ in pairs(require("memory-modules")) do
-    -- local drive = machine("ms-drives", itemId, 1)
-    -- drive["place_as_equipment_result"] = itemId
     data:extend({
-        -- drive,
         {
             type = "module",
             name = itemId,
@@ -67,27 +64,16 @@ for itemId, _ in pairs(require("memory-modules")) do
     })
 end
 
-for _, digitalFluidId in pairs(require("fluid-map")) do
-    data:extend({
-        item("ms-fluids", digitalFluidId, 1000)
-    })
-end
-
 data:extend({
     -- machines
     machine("ms-chests", "ms-cloud-chest", 50),
     machine("ms-chests", "ms-cloud-logistic-chest", 50),
-    machine("ms-chests", "ms-material-combinator", 50),
     machine("ms-chests", "ms-material-hub-chest", 50),
     machine("ms-chests", "ms-material-chest", 50),
-    machine("ms-chests", "ms-material-logistic-chest", 50),
-
     -- details
     item("ms-details", "ms-fine-quartz", 50),
-    item("ms-details", "ms-material-crystal", 50),
     item("ms-details", "ms-resonating-crystal", 50),
     item("ms-details", "ms-resonating-quartz", 50),
-
     -- module
     {
         type = "module",
@@ -132,3 +118,16 @@ data:extend({
         requires_beacon_alt_mode = false
     }
 })
+
+if not mods["material-storage"] then
+    data:extend({
+        machine("ms-chests", "ms-material-combinator", 50),
+        machine("ms-chests", "ms-material-logistic-chest", 50),
+        item("ms-details", "ms-material-crystal", 50),
+    })
+    for _, digitalFluidId in pairs(require("fluid-map")) do
+        data:extend({
+            item("ms-fluids", digitalFluidId, 1000)
+        })
+    end
+end

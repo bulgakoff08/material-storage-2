@@ -1,35 +1,36 @@
--- tries to take desired amount of items from inventory and returns amount actually taken
-local function extractFromInventory (inventory, itemId, intention, leaveOne)
-    if leaveOne then
-        local available = inventory.get_item_count(itemId) - 1
-        if available == 0 then
-            return 0
+local drives = require("prototypes.memory-modules")
+
+-- creates table with contents of inventory filter
+local function createPlan (inventory)
+    if inventory.is_filtered() then
+        local result = {}
+        for index = 1, #inventory do
+            local filter = inventory.get_filter(index)
+            if filter ~= nil then
+                local itemId = filter.name
+                if result[itemId] == nil then
+                    result[itemId] = prototypes.item[itemId].stack_size
+                else
+                    result[itemId] = result[itemId] + prototypes.item[itemId].stack_size
+                end
+            end
         end
-        if available < intention then
-            return inventory.remove({type = "item", name = itemId, count = available})
-        end
+        return result
     end
+    return false
+end
+
+-- tries to take desired amount of items from inventory and returns amount actually taken
+local function extractFromInventory (inventory, itemId, intention)
     return inventory.remove({type = "item", name = itemId, count = intention})
 end
 
--- tries to take desired amount of items across all chests and machine inventories
--- TODO: make this accept list of inventories so it can be reused for hard drives
--- TODO: non empty machines inventories should be generated on previous step
-local function requestItems (context, itemId, requestAmount)
+local function takeItemFromInventories (itemId, requestAmount, inventories)
     local itemsTaken = 0
-    for _, chest in pairs(context.nonEmptyChests) do
-        if chest.get_item_count(itemId) > 1 then
+    for _, inventory in pairs(inventories) do
+        if inventory.get_item_count(itemId) > 0 then
             local intention = requestAmount - itemsTaken
-            itemsTaken = itemsTaken + extractFromInventory(chest, itemId, intention, true)
-            if itemsTaken == requestAmount then
-                return itemsTaken
-            end
-        end
-    end
-    for _, machine in pairs(context.nonEmptyMachines) do
-        if machine.get_item_count(itemId) > 0 then
-            local intention = requestAmount - itemsTaken
-            itemsTaken = itemsTaken + extractFromInventory(machine, itemId, intention, false)
+            itemsTaken = itemsTaken + extractFromInventory(inventory, itemId, intention)
             if itemsTaken == requestAmount then
                 return itemsTaken
             end
@@ -38,14 +39,22 @@ local function requestItems (context, itemId, requestAmount)
     return itemsTaken
 end
 
+-- tries to take desired amount of items across all cloud chests and machine inventories
+local function requestCloudItems (context, itemId, requestAmount)
+    local itemsTaken = takeItemFromInventories(itemId, requestAmount, context.nonEmptyChests)
+    if itemsTaken < requestAmount then
+        itemsTaken = itemsTaken + takeItemFromInventories(itemId, requestAmount - itemsTaken, context.nonEmptyMachines)
+    end
+    return itemsTaken
+end
+
 -- insert items into machine according to its crafting speed and recipe demand
--- TODO: need to configure this method so it accept either list of cloud chests of list of hard drives depending on module inside
 local function insertItem (context, machine, itemId, count, multiplier)
     local required = count * multiplier
     local inventory = machine.get_inventory(defines.inventory.assembling_machine_input)
     if inventory.get_item_count(itemId) < required then
         if inventory.can_insert({type = "item", name = itemId, count = required}) then
-            local requested = requestItems(context, itemId, required)
+            local requested = requestCloudItems(context, itemId, required)
             if requested > 0 then
                 inventory.insert({type = "item", name = itemId, count = requested})
             end
@@ -54,7 +63,6 @@ local function insertItem (context, machine, itemId, count, multiplier)
 end
 
 -- serves recipe inputs for a single machine
--- TODO: need to configure this method so it accept either list of cloud chests of list of hard drives depending on module inside
 local function serveMachine (context, machine)
     local recipe
     if machine.type == "assembling-machine" then
@@ -77,12 +85,18 @@ end
 -- serves recipe outputs for a single machine
 local function serveOutput (context, output)
     for _, item in pairs(output.get_contents()) do
+        local itemId = item.name
         local itemsLeft = item.count
-        for _, chest in pairs(context.nonEmptyChests) do
-            if chest.get_item_count(item.name) > 0 then
-                local inserted = chest.insert({type = "item", name = item.name, count = itemsLeft})
-                if inserted > 0 then
-                    itemsLeft = itemsLeft - output.remove({type = "item", name = item.name, count = inserted})
+        for _, chest in pairs(context.filteredChests) do
+            if chest.plan[itemId] then
+                local storable = chest.plan[itemId] - chest.inventory.get_item_count(itemId)
+                if storable > 0 then
+                    local intention = itemsLeft
+                    if storable < intention then
+                        intention = storable
+                    end
+                    chest.inventory.insert({type = "item", name = itemId, count = intention})
+                    itemsLeft = itemsLeft - output.remove({type = "item", name = item.name, count = intention})
                 end
             end
             if itemsLeft <= 0 then
@@ -92,17 +106,24 @@ local function serveOutput (context, output)
     end
 end
 
--- TODO: context must include available hard drive inventories
--- TODO: add table with available cloud chests and their filters plan, do not include inventories with no plan
-local function createContext (chests, machines)
+local function createContext (chests, machines, hardDrives)
     local context = {
         nonEmptyChests = {}, -- non-empty chest inventories (used to refill and output results)
         nonEmptyMachines = {}, -- non-empty output inventories (used to refill only)
-        servedMachines = {} -- list of machines with cloud access module
+        servedMachines = {}, -- list of machines with cloud access module
+        filteredChests = {}, -- chests inventories with filters
+        hardDrives = hardDrives -- list of active hard drives
     }
     for _, chest in pairs(chests) do
-        if chest and chest.valid and not chest.get_inventory(defines.inventory.chest).is_empty() then
-            table.insert(context.nonEmptyChests, chest.get_inventory(defines.inventory.chest))
+        if chest and chest.valid then
+            local inventory = chest.get_inventory(defines.inventory.chest)
+            if not inventory.is_empty() then
+                table.insert(context.nonEmptyChests, inventory)
+            end
+            local plan = createPlan(inventory)
+            if plan then
+                table.insert(context.filteredChests, {inventory = inventory, plan = plan})
+            end
         end
     end
     for _, machine in pairs(machines) do
@@ -117,8 +138,15 @@ local function createContext (chests, machines)
 end
 
 script.on_nth_tick(60, function()
+    local hubInventory = game.get_player(1).force.get_linked_inventory("ms-material-hub-chest", 0)
+    local activeHardDrives = {}
+    for driveId, _ in pairs(drives) do
+        if hubInventory.get_item_count(driveId) > 0 then
+            table.insert(activeHardDrives, game.get_player(1).force.get_linked_inventory(driveId, 0))
+        end
+    end
     for _, surface in pairs(storage.surfaces or {}) do
-        local context = createContext(surface.cloudChests, surface.machines)
+        local context = createContext(surface.cloudChests, surface.machines, activeHardDrives)
         for _, output in pairs(context.nonEmptyMachines) do
             serveOutput(context, output)
         end
