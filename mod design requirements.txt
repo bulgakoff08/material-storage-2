@@ -1,18 +1,18 @@
-[ ] Quality Support
-[ ] Intermediates
+[X] Quality Support
+[X] Intermediates
     [X] Fine Quartz
     [X] Material Crystal
     [X] Resonating Quartz
     [X] Resonating Crystal
-[ ] Cloud Access Module
-    [ ] Take items from cloud chests and other machines
+[X] Cloud Access Module
+    [X] Take items from cloud chests and other machines
 [ ] Material Access Module
     [ ] Take items from hard drives
 [ ] Material Hub Chest
     [ ] Hold items if no hard drives
-    [ ] Hold hard drives
-    [ ] Request items
-    [ ] Put items to hard drives
+    [X] Hold hard drives
+    [X] Request items
+    [X] Put items to hard drives
 [ ] Material Combinator
     [ ] Statistics of all items including hub
     [ ] Hard drives free slots
@@ -26,11 +26,11 @@
         [ ] Supplies inputs from hard drive
         [ ] Collects outputs into hard drive
 [ ] Material Logistic Chest
-    [ ] Request items from hard drives
-    [ ] Put on hard drives or material chest
+    [X] Request items from hard drives
+    [X] Put on hard drives or material chest
     [X] Works as buffer chest
-[ ] Cloud Chest
-    [ ] Filters to mark outputs
-[ ] Cloud Logistic Chest
-    [ ] Filters to mark outputs
+[X] Cloud Chest
+    [X] Filters to mark outputs
+[X] Cloud Logistic Chest
+    [X] Filters to mark outputs
     [X] Works as logistic storage chest

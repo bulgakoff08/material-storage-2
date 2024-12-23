@@ -1,36 +1,49 @@
-local drives = require("prototypes.memory-modules")
+local HARD_DRIVES = require("prototypes.memory-modules")
 
--- creates table with contents of inventory filter
+local function getQuality (metadata)
+    if metadata and metadata["quality"] then
+        return metadata.quality
+    end
+    return "normal"
+end
+
+-- creates table with contents of inventory filter with qualities
 local function createPlan (inventory)
+    local result = {}
+    local buffer = {}
     if inventory.is_filtered() then
-        local result = {}
         for index = 1, #inventory do
             local filter = inventory.get_filter(index)
             if filter ~= nil then
                 local itemId = filter.name
-                if result[itemId] == nil then
-                    result[itemId] = prototypes.item[itemId].stack_size
+                local stackSize = prototypes.item[itemId].stack_size
+                local quality = getQuality(filter)
+
+                if not buffer[quality] then
+                    buffer[quality] = {}
+                end
+                if buffer[quality][itemId] == nil then
+                    buffer[quality][itemId] = stackSize
                 else
-                    result[itemId] = result[itemId] + prototypes.item[itemId].stack_size
+                    buffer[quality][itemId] = buffer[quality][itemId] + stackSize
                 end
             end
         end
-        return result
+        for quality, items in pairs(buffer) do
+            for itemId, count in pairs(items) do
+                table.insert(result, {itemId = itemId, count = count, quality = quality})
+            end
+        end
     end
-    return false
+    return result
 end
 
--- tries to take desired amount of items from inventory and returns amount actually taken
-local function extractFromInventory (inventory, itemId, intention)
-    return inventory.remove({type = "item", name = itemId, count = intention})
-end
-
-local function takeItemFromInventories (itemId, requestAmount, inventories)
+local function takeItemFromInventories (itemId, requestAmount, quality, inventories)
     local itemsTaken = 0
     for _, inventory in pairs(inventories) do
-        if inventory.get_item_count(itemId) > 0 then
+        if inventory.get_item_count({name = itemId, quality = quality}) > 0 then
             local intention = requestAmount - itemsTaken
-            itemsTaken = itemsTaken + extractFromInventory(inventory, itemId, intention)
+            itemsTaken = itemsTaken + inventory.remove({type = "item", name = itemId, count = intention, quality = quality})
             if itemsTaken == requestAmount then
                 return itemsTaken
             end
@@ -40,23 +53,37 @@ local function takeItemFromInventories (itemId, requestAmount, inventories)
 end
 
 -- tries to take desired amount of items across all cloud chests and machine inventories
-local function requestCloudItems (context, itemId, requestAmount)
-    local itemsTaken = takeItemFromInventories(itemId, requestAmount, context.nonEmptyChests)
+local function requestCloudItems (context, itemId, requestAmount, quality)
+    local itemsTaken = takeItemFromInventories(itemId, requestAmount, quality, context.nonEmptyChests)
     if itemsTaken < requestAmount then
-        itemsTaken = itemsTaken + takeItemFromInventories(itemId, requestAmount - itemsTaken, context.nonEmptyMachines)
+        itemsTaken = itemsTaken + takeItemFromInventories(itemId, requestAmount - itemsTaken, quality, context.nonEmptyMachines)
     end
     return itemsTaken
 end
 
+-- tries to put specific amount of item into hard drive inventories and return amount actually placed into
+local function putItemOnHardDrives (itemId, amount, quality, hardDrives)
+    local result = 0
+    local itemsLeft = amount
+    for _, drive in pairs(hardDrives) do
+        result = result + drive.insert({type = "item", name = itemId, quality = quality, count = itemsLeft})
+        itemsLeft = amount - result
+        if itemsLeft <= 0 then
+            return result
+        end
+    end
+    return result
+end
+
 -- insert items into machine according to its crafting speed and recipe demand
-local function insertItem (context, machine, itemId, count, multiplier)
+local function insertItem (context, machine, itemId, count, quality, multiplier)
     local required = count * multiplier
     local inventory = machine.get_inventory(defines.inventory.assembling_machine_input)
-    if inventory.get_item_count(itemId) < required then
-        if inventory.can_insert({type = "item", name = itemId, count = required}) then
-            local requested = requestCloudItems(context, itemId, required)
+    if inventory.get_item_count({name = itemId, quality = quality}) < required then
+        if inventory.can_insert({type = "item", name = itemId, count = required, quality = quality}) then
+            local requested = requestCloudItems(context, itemId, required, quality)
             if requested > 0 then
-                inventory.insert({type = "item", name = itemId, count = requested})
+                inventory.insert({type = "item", name = itemId, count = requested, quality = quality})
             end
         end
     end
@@ -65,18 +92,43 @@ end
 -- serves recipe inputs for a single machine
 local function serveMachine (context, machine)
     local recipe
-    if machine.type == "assembling-machine" then
-        recipe = machine.get_recipe()
+    local quality = "normal"
+    if machine.type == "assembling-machine" or machine.type == "rocket-silo" then
+        recipe, quality = machine.get_recipe()
     end
     if machine.type == "furnace" and machine.previous_recipe then
         recipe = machine.previous_recipe.name
+        quality = machine.previous_recipe.quality
     end
     if recipe then
         local ingredients = recipe.ingredients
         local craftMultiplier = math.ceil(1 / recipe.energy * (machine.crafting_speed or 1)) * 2
         for _, ingredient in pairs(ingredients) do
             if ingredient.type == "item" then
-                insertItem(context, machine, ingredient.name, ingredient.amount, craftMultiplier)
+                insertItem(context, machine, ingredient.name, ingredient.amount, quality, craftMultiplier)
+            end
+        end
+    end
+end
+
+-- takes excess items from all material chests and then refills them according to plan with items from hard drives
+local function serveMaterialChests (chests, hardDrives)
+    for _, chest in pairs(chests) do
+        for _, wrapper in pairs(chest.get_contents()) do
+            if HARD_DRIVES[wrapper.name] == nil then
+                local stored = putItemOnHardDrives(wrapper.name, wrapper.count, getQuality(wrapper), hardDrives)
+                if stored > 0 then
+                    chest.remove({type = "item", name = wrapper.name, count = stored, quality = getQuality(wrapper)})
+                end
+            end
+        end
+        for _, metadata in pairs(createPlan(chest)) do
+            local requestAmount = metadata.count - chest.get_item_count({name = metadata.itemId, quality = metadata.quality})
+            if requestAmount > 0 and chest.can_insert({type = "item", name = metadata.itemId, count = requestAmount, quality = metadata.quality}) then
+                local itemsTaken = takeItemFromInventories(metadata.itemId, metadata.count, metadata.quality, hardDrives)
+                if itemsTaken > 0 then
+                    chest.insert({type = "item", name = metadata.itemId, count = itemsTaken, quality = metadata.quality})
+                end
             end
         end
     end
@@ -84,19 +136,22 @@ end
 
 -- serves recipe outputs for a single machine
 local function serveOutput (context, output)
-    for _, item in pairs(output.get_contents()) do
-        local itemId = item.name
-        local itemsLeft = item.count
+    for _, metadata in pairs(output.get_contents()) do
+        local itemId = metadata.name
+        local itemsLeft = metadata.count
+        local quality = getQuality(metadata)
         for _, chest in pairs(context.filteredChests) do
-            if chest.plan[itemId] then
-                local storable = chest.plan[itemId] - chest.inventory.get_item_count(itemId)
-                if storable > 0 then
-                    local intention = itemsLeft
-                    if storable < intention then
-                        intention = storable
+            for _, planItem in pairs(chest.plan) do
+                if planItem.itemId == itemId and planItem.quality == quality then
+                    local storable = planItem.count - chest.inventory.get_item_count({name = itemId, quality = quality})
+                    if storable > 0 then
+                        local intention = itemsLeft
+                        if storable < intention then
+                            intention = storable
+                        end
+                        chest.inventory.insert({type = "item", name = itemId, count = intention, quality = quality})
+                        itemsLeft = itemsLeft - output.remove({ type = "item", name = metadata.name, count = intention, quality = quality})
                     end
-                    chest.inventory.insert({type = "item", name = itemId, count = intention})
-                    itemsLeft = itemsLeft - output.remove({type = "item", name = item.name, count = intention})
                 end
             end
             if itemsLeft <= 0 then
@@ -106,13 +161,12 @@ local function serveOutput (context, output)
     end
 end
 
-local function createContext (chests, machines, hardDrives)
+local function createContext (chests, machines)
     local context = {
         nonEmptyChests = {}, -- non-empty chest inventories (used to refill and output results)
         nonEmptyMachines = {}, -- non-empty output inventories (used to refill only)
         servedMachines = {}, -- list of machines with cloud access module
-        filteredChests = {}, -- chests inventories with filters
-        hardDrives = hardDrives -- list of active hard drives
+        filteredChests = {} -- chests inventories with filters
     }
     for _, chest in pairs(chests) do
         if chest and chest.valid then
@@ -121,7 +175,7 @@ local function createContext (chests, machines, hardDrives)
                 table.insert(context.nonEmptyChests, inventory)
             end
             local plan = createPlan(inventory)
-            if plan then
+            if #plan > 0 then
                 table.insert(context.filteredChests, {inventory = inventory, plan = plan})
             end
         end
@@ -139,14 +193,21 @@ end
 
 script.on_nth_tick(60, function()
     local hubInventory = game.get_player(1).force.get_linked_inventory("ms-material-hub-chest", 0)
-    local activeHardDrives = {}
-    for driveId, _ in pairs(drives) do
+    local driveInventories = {}
+    for driveId, _ in pairs(HARD_DRIVES) do
         if hubInventory.get_item_count(driveId) > 0 then
-            table.insert(activeHardDrives, game.get_player(1).force.get_linked_inventory(driveId, 0))
+            table.insert(driveInventories, game.get_player(1).force.get_linked_inventory(driveId, 0))
         end
     end
+    local materialInventories = {}
+    for _, chest in pairs(storage.materialChests or {}) do
+        table.insert(materialInventories, chest.get_inventory(defines.inventory.chest))
+    end
+    table.insert(materialInventories, hubInventory)
+    serveMaterialChests(materialInventories, driveInventories)
+
     for _, surface in pairs(storage.surfaces or {}) do
-        local context = createContext(surface.cloudChests, surface.machines, activeHardDrives)
+        local context = createContext(surface.cloudChests, surface.machines)
         for _, output in pairs(context.nonEmptyMachines) do
             serveOutput(context, output)
         end
@@ -169,7 +230,7 @@ local function isEntityCombinator (entity)
 end
 
 local function isEntityMachine (entity)
-    if entity.type == "assembling-machine" or entity.type == "furnace" then
+    if entity.type == "assembling-machine" or entity.type == "furnace" or entity.type == "rocket-silo" then
         return entity.can_insert({name = "ms-cloud-access-module"}) or entity.can_insert({name = "ms-material-access-module"})
     end
 end
