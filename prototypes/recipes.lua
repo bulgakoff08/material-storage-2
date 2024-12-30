@@ -123,6 +123,7 @@ else
             category = "advanced-crafting",
             energy_required = 5,
             allow_quality = false,
+            auto_recycle = false,
             ingredients = {
                 {type = "item", name = "stone", amount = 10}
             },

@@ -1,12 +1,5 @@
 local HARD_DRIVES = require("prototypes.memory-modules")
 
-local function getQuality (metadata)
-    if metadata and metadata["quality"] then
-        return metadata.quality
-    end
-    return "normal"
-end
-
 -- creates table with contents of inventory filter with qualities
 local function createPlan (inventory)
     local result = {}
@@ -17,7 +10,7 @@ local function createPlan (inventory)
             if filter ~= nil then
                 local itemId = filter.name
                 local stackSize = prototypes.item[itemId].stack_size
-                local quality = getQuality(filter)
+                local quality = filter.quality
 
                 if not buffer[quality] then
                     buffer[quality] = {}
@@ -78,12 +71,19 @@ end
 -- insert items into machine according to its crafting speed and recipe demand
 local function insertItem (context, machine, itemId, count, quality, multiplier)
     local required = count * multiplier
+    if required > prototypes.item[itemId].stack_size then
+        required = prototypes.item[itemId].stack_size
+    end
     local inventory = machine.get_inventory(defines.inventory.assembling_machine_input)
-    if inventory.get_item_count({name = itemId, quality = quality}) < required then
-        if inventory.can_insert({type = "item", name = itemId, count = required, quality = quality}) then
-            local requested = requestCloudItems(context, itemId, required, quality)
+    local itemsInside = inventory.get_item_count({name = itemId, quality = quality})
+    local needToInsert = required - itemsInside
+    if needToInsert > 0 then
+        if inventory.can_insert({type = "item", name = itemId, count = needToInsert, quality = quality}) then
+            local requested = requestCloudItems(context, itemId, needToInsert, quality)
             if requested > 0 then
-                inventory.insert({type = "item", name = itemId, count = requested, quality = quality})
+                game.get_player(1).print("Items taken from cloud: " .. requested)
+                local actualInserted = inventory.insert({type = "item", name = itemId, count = requested, quality = quality})
+                game.get_player(1).print("Items actually put into machine: " .. actualInserted)
             end
         end
     end
@@ -116,9 +116,9 @@ local function serveMaterialChests (chests, hardDrives)
     for _, chest in pairs(chests) do
         for _, wrapper in pairs(chest.get_contents()) do
             if HARD_DRIVES[wrapper.name] == nil then
-                local stored = putItemOnHardDrives(wrapper.name, wrapper.count, getQuality(wrapper), hardDrives)
+                local stored = putItemOnHardDrives(wrapper.name, wrapper.count, wrapper.quality, hardDrives)
                 if stored > 0 then
-                    chest.remove({type = "item", name = wrapper.name, count = stored, quality = getQuality(wrapper)})
+                    chest.remove({type = "item", name = wrapper.name, count = stored, quality = wrapper.quality})
                 end
             end
         end
@@ -139,7 +139,7 @@ local function serveOutput (context, output)
     for _, metadata in pairs(output.get_contents()) do
         local itemId = metadata.name
         local itemsLeft = metadata.count
-        local quality = getQuality(metadata)
+        local quality = metadata.quality
         for _, chest in pairs(context.filteredChests) do
             for _, planItem in pairs(chest.plan) do
                 if planItem.itemId == itemId and planItem.quality == quality then
@@ -193,12 +193,14 @@ end
 
 script.on_nth_tick(60, function()
     local hubInventory = game.get_player(1).force.get_linked_inventory("ms-material-hub-chest", 0)
+
     local driveInventories = {}
     for driveId, _ in pairs(HARD_DRIVES) do
         if hubInventory.get_item_count(driveId) > 0 then
             table.insert(driveInventories, game.get_player(1).force.get_linked_inventory(driveId, 0))
         end
     end
+
     local materialInventories = {}
     for _, chest in pairs(storage.materialChests or {}) do
         table.insert(materialInventories, chest.get_inventory(defines.inventory.chest))
@@ -243,7 +245,7 @@ local function entityPlacementHandler (entity)
         end
         if isEntityMaterialChest(entity) then
             table.insert(storage.materialChests, entity)
-            game.get_player(1).print("Registered material chest or material logistic chest (" .. #storage.materialChests .. ")")
+            -- game.get_player(1).print("Registered material chest or material logistic chest (" .. #storage.materialChests .. ")")
             return
         end
         if storage.combinators == nil then
@@ -251,7 +253,7 @@ local function entityPlacementHandler (entity)
         end
         if isEntityCombinator(entity) then
             table.insert(storage.combinators, entity)
-            game.get_player(1).print("Registered combinator (" .. #storage.combinators .. ")")
+            -- game.get_player(1).print("Registered combinator (" .. #storage.combinators .. ")")
             return
         end
         if storage.surfaces == nil then
@@ -262,12 +264,12 @@ local function entityPlacementHandler (entity)
         end
         if isEntityCloudChest(entity) then
             table.insert(storage.surfaces[surfaceIndex].cloudChests, entity)
-            game.get_player(1).print("Registered cloud chest or cloud logistic chest (" .. #storage.surfaces[surfaceIndex].cloudChests .. ")")
+            -- game.get_player(1).print("Registered cloud chest or cloud logistic chest (" .. #storage.surfaces[surfaceIndex].cloudChests .. ")")
             return
         end
         if isEntityMachine(entity) then
             table.insert(storage.surfaces[surfaceIndex].machines, entity)
-            game.get_player(1).print("Registered suitable machine (" .. #storage.surfaces[surfaceIndex].machines .. ")")
+            -- game.get_player(1).print("Registered suitable machine (" .. #storage.surfaces[surfaceIndex].machines .. ")")
             return
         end
     end
@@ -294,13 +296,13 @@ local function entityRemovalHandler (event)
     if event.entity and event.entity.valid then
         if isEntityMaterialChest(event.entity) then
             if removeEntityFromIndex(storage.materialChests, event.entity) then
-                game.get_player(1).print("Removed material chest or material logistic chest (" .. #storage.materialChests .. ")")
+                -- game.get_player(1).print("Removed material chest or material logistic chest (" .. #storage.materialChests .. ")")
                 return
             end
         end
         if isEntityCombinator(event.entity) then
             if removeEntityFromIndex(storage.combinators, event.entity) then
-                game.get_player(1).print("Removed material combinator (" .. #storage.combinators .. ")")
+                -- game.get_player(1).print("Removed material combinator (" .. #storage.combinators .. ")")
                 return
             end
         end
@@ -314,13 +316,13 @@ local function entityRemovalHandler (event)
         local surface = storage.surfaces[surfaceIndex]
         if isEntityCloudChest(event.entity) then
             if removeEntityFromIndex(surface.cloudChests, event.entity) then
-                game.get_player(1).print("Removed cloud chest or cloud logistic chest (" .. #surface.cloudChests .. ")")
+                -- game.get_player(1).print("Removed cloud chest or cloud logistic chest (" .. #surface.cloudChests .. ")")
                 return
             end
         end
         if isEntityMachine(event.entity) then
             if removeEntityFromIndex(surface.machines, event.entity) then
-                game.get_player(1).print("Removed machine (" .. #surface.machines .. ")")
+                -- game.get_player(1).print("Removed machine (" .. #surface.machines .. ")")
                 return
             end
         end
