@@ -75,15 +75,12 @@ local function insertItem (context, machine, itemId, count, quality, multiplier)
         required = prototypes.item[itemId].stack_size
     end
     local inventory = machine.get_inventory(defines.inventory.assembling_machine_input)
-    local itemsInside = inventory.get_item_count({name = itemId, quality = quality})
-    local needToInsert = required - itemsInside
-    if needToInsert > 0 then
-        if inventory.can_insert({type = "item", name = itemId, count = needToInsert, quality = quality}) then
-            local requested = requestCloudItems(context, itemId, needToInsert, quality)
+    required = required - inventory.get_item_count({name = itemId, quality = quality})
+    if required > 0 then
+        if inventory.can_insert({type = "item", name = itemId, count = required, quality = quality}) then
+            local requested = requestCloudItems(context, itemId, required, quality)
             if requested > 0 then
-                game.get_player(1).print("Items taken from cloud: " .. requested)
-                local actualInserted = inventory.insert({type = "item", name = itemId, count = requested, quality = quality})
-                game.get_player(1).print("Items actually put into machine: " .. actualInserted)
+                inventory.insert({type = "item", name = itemId, count = requested, quality = quality})
             end
         end
     end
