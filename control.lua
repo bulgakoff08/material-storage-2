@@ -74,7 +74,11 @@ end
 local function insertItem (machine, itemId, count, quality, multiplier, chestInventories, machineInventories)
     local required = count * multiplier
     if required > prototypes.item[itemId].stack_size then
-        required = prototypes.item[itemId].stack_size
+        if count > prototypes.item[itemId].stack_size then
+            required = count
+        else
+            required = prototypes.item[itemId].stack_size
+        end
     end
     local inventory = machine.get_inventory(defines.inventory.assembling_machine_input)
     required = required - inventory.get_item_count({name = itemId, quality = quality})
@@ -171,7 +175,7 @@ local function serveOutput (output, inventories)
                 itemsLeft = itemsLeft - output.remove({ type = "item", name = metadata.name, count = inserted, quality = quality})
             end
             if (itemsLeft <= 0) then
-                return
+                break
             end
         end
     end
@@ -228,7 +232,6 @@ script.on_nth_tick(60, function()
     serveMaterialChests(materialInventories, driveInventories)
 
     table.insert(driveInventories, hubInventory) -- making hub chest another one hard drive
-
     for _, surface in pairs(storage.surfaces or {}) do
         local context = createContext(surface.cloudChests, surface.machines)
         for _, machine in pairs(context.cloudMachines) do
