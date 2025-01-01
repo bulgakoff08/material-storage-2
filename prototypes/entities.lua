@@ -47,7 +47,7 @@ local function createHardDrive (entityId, linkId)
             }
         },
         link_id = linkId,
-        inventory_size = 1024,
+        inventory_size = 2048,
         inventory_type = "normal",
         gui_mode = "none",
         circuit_connector = circuit_connector_definitions["chest"],

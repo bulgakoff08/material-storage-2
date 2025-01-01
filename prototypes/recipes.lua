@@ -37,7 +37,7 @@ end
 
 for itemId, _ in pairs(require("memory-modules")) do
     data:extend({
-        recipe("crafting", 1, itemId, items("ms-resonating-quartz", 1, "ms-resonating-crystal", 1, "electronic-circuit", 5, "steel-chest", 5), items(itemId, 1))
+        recipe("crafting", 1, itemId, items("ms-resonating-quartz", 20, "ms-resonating-crystal", 20, "electronic-circuit", 50, "steel-chest", 40), items(itemId, 1))
     })
     if mods["material-storage"] then
         data:extend({
