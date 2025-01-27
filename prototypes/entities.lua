@@ -432,6 +432,7 @@ if not mods["material-storage"] then
     })
 end
 
+-- migration
 if not mods["cloud-crafting"] then
     data:extend({
         {
