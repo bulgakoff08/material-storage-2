@@ -6,10 +6,11 @@
     [X] Resonating Crystal
 [X] Cloud Access Module
     [X] Take items from cloud chests and other machines
-[-] Material Access Module
-    [-] Take items from hard drives
+[X] Material Access Module
+    [X] Take items from hard drives
+    [X] Put items back on hard drives
 [X] Material Hub Chest
-    [-] Hold items if no hard drives // won't do
+    [X] Hold items if no hard drives
     [X] Hold hard drives
     [X] Request items
     [X] Put items to hard drives
@@ -17,7 +18,7 @@
     [-] Statistics of all items including hub
     [-] Hard drives free slots
 [X] Material Hard Drive A - H
-    [X] 1024 slots (configurable)
+    [?] 1024 slots (configurable)
     [X] Placeable as chest
     [-] Insertable into armor // won't do
         [-] Refill inventory
@@ -33,4 +34,4 @@
     [X] Filters to mark outputs
 [X] Cloud Logistic Chest
     [X] Filters to mark outputs
-    [X] Works as logistic storage chest
+    [?] Works as logistic storage chest
