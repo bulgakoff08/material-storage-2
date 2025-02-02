@@ -228,10 +228,13 @@ script.on_nth_tick(60, function()
     for _, chest in pairs(storage.materialChests or {}) do
         table.insert(materialInventories, chest.get_inventory(defines.inventory.chest))
     end
-    table.insert(materialInventories, hubInventory)
-    serveMaterialChests(materialInventories, driveInventories)
+
+    local hubInventoryTable = {}
+    table.insert(hubInventoryTable, hubInventory)
+    serveMaterialChests(hubInventoryTable, driveInventories)
 
     table.insert(driveInventories, hubInventory) -- making hub chest another one hard drive
+    serveMaterialChests(materialInventories, driveInventories)
     for _, surface in pairs(storage.surfaces or {}) do
         local context = createContext(surface.cloudChests, surface.machines)
         for _, machine in pairs(context.cloudMachines) do
