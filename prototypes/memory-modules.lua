@@ -6,5 +6,7 @@ return {
     ["ms-memory-module-e"] = {inventoryId = 4955},
     ["ms-memory-module-f"] = {inventoryId = 4956},
     ["ms-memory-module-g"] = {inventoryId = 4957},
-    ["ms-memory-module-h"] = {inventoryId = 4958}
+    ["ms-memory-module-h"] = {inventoryId = 4958},
+    ["ms-memory-module-i"] = {inventoryId = 4959},
+    ["ms-memory-module-j"] = {inventoryId = 4960}
 }
