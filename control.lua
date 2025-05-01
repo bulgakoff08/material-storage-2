@@ -105,7 +105,7 @@ local function serveMachine (machine, chestInventories, machineInventories)
     end
     if recipe then
         local ingredients = recipe.ingredients
-        local craftMultiplier = math.ceil(1 / recipe.energy * (machine.crafting_speed or 1)) * 2
+        local craftMultiplier = math.ceil(1 / recipe.energy * (machine.crafting_speed or 1)) -- * 2
         for _, ingredient in pairs(ingredients) do
             if ingredient.type == "item" then
                 insertItem(machine, ingredient.name, ingredient.amount, quality, craftMultiplier, chestInventories, machineInventories)
@@ -215,7 +215,7 @@ local function createContext (chests, machines)
     return context
 end
 
-script.on_nth_tick(60, function()
+script.on_nth_tick(30, function()
     local hubInventory = game.get_player(1).force.get_linked_inventory("ms-material-hub-chest", 0)
 
     local driveInventories = {}
@@ -233,7 +233,7 @@ script.on_nth_tick(60, function()
     table.insert(hubInventoryTable, hubInventory)
     serveMaterialChests(hubInventoryTable, driveInventories)
 
-    table.insert(driveInventories, hubInventory) -- making hub chest another one hard drive
+    table.insert(driveInventories, hubInventory) -- pretending hub chest is another hard drive with lowest priority
     serveMaterialChests(materialInventories, driveInventories)
     for _, surface in pairs(storage.surfaces or {}) do
         local context = createContext(surface.cloudChests, surface.machines)
@@ -245,7 +245,10 @@ script.on_nth_tick(60, function()
         end
         for _, machine in pairs(surface.machines) do
             if isModuleInstalled(machine, MATERIAL_STORAGE_MODULE) then
-                serveOutput(machine.get_output_inventory(), driveInventories)
+                if machine.type ~= "rocket-silo" then
+                    game.get_player(1).print("Trying to output material machine")
+                    serveOutput(machine.get_output_inventory(), driveInventories)
+                end
                 serveMachine(machine, driveInventories, {})
             end
         end
