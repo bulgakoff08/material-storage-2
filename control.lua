@@ -184,10 +184,11 @@ local function isModuleInstalled (machine, moduleId)
     return (machine and machine.valid and machine.get_module_inventory() and machine.get_module_inventory().get_item_count(moduleId) > 0)
 end
 
-local function createContext (chests, machines)
+local function createContext (chests, exportChests, machines)
     local context = {
         fullCloudChests = {}, -- non-empty chest inventories (used to refill and output results)
         fullCloudMachines = {}, -- non-empty output inventories (used to refill only)
+        fullExportChests = {}, -- non-empty export chest inventories
         cloudMachines = {}, -- list of machines with cloud access module
         inventoryPlanPairs = {} -- chests inventories with filters
     }
@@ -200,6 +201,14 @@ local function createContext (chests, machines)
             local plan = createPlan(inventory)
             if #plan > 0 then
                 table.insert(context.inventoryPlanPairs, {inventory = inventory, plan = plan})
+            end
+        end
+    end
+    for _, exportChest in pairs(exportChests) do
+        if exportChest and exportChest.valid then
+            local inventory = exportChest.get_inventory(defines.inventory.chest)
+            if not inventory.is_empty() then
+                table.insert(context.fullExportChests, inventory)
             end
         end
     end
@@ -236,7 +245,14 @@ script.on_nth_tick(30, function()
     table.insert(driveInventories, hubInventory)
     serveMaterialChests(materialInventories, driveInventories)
     for _, surface in pairs(storage.surfaces or {}) do
-        local context = createContext(surface.cloudChests, surface.machines)
+        local context = createContext(
+                surface.cloudChests or {},
+                surface.exportChests or {},
+                surface.machines or {}
+        )
+        for _, exportChest in pairs(context.fullExportChests) do
+            serveFilteredOutput(exportChest, context.inventoryPlanPairs)
+        end
         for _, machine in pairs(context.cloudMachines) do
             serveMachine(machine, context.fullCloudChests, context.fullCloudMachines)
         end
@@ -256,6 +272,10 @@ end)
 
 local function isEntityCloudChest (entity)
     return entity.name == "ms-cloud-chest" or entity.name == "ms-cloud-logistic-chest"
+end
+
+local function isEntityExportChest (entity)
+    return entity.name == "ms-cloud-export-chest"
 end
 
 local function isEntityMaterialChest (entity)
@@ -293,7 +313,7 @@ local function entityPlacementHandler (entity)
             storage.surfaces = {}
         end
         if storage.surfaces[surfaceIndex] == nil then
-            storage.surfaces[surfaceIndex] = {cloudChests = {}, machines = {}}
+            storage.surfaces[surfaceIndex] = {cloudChests = {}, machines = {}, exportChests = {}}
         end
         if isEntityCloudChest(entity) then
             table.insert(storage.surfaces[surfaceIndex].cloudChests, entity)
@@ -302,6 +322,12 @@ local function entityPlacementHandler (entity)
         if isEntityMachine(entity) then
             table.insert(storage.surfaces[surfaceIndex].machines, entity)
             return
+        end
+        if isEntityExportChest(entity) then
+            if not storage.surfaces[surfaceIndex].exportChests then
+                storage.surfaces[surfaceIndex].exportChests = {}
+            end
+            table.insert(storage.surfaces[surfaceIndex].exportChests, entity)
         end
     end
 end
@@ -345,6 +371,11 @@ local function entityRemovalHandler (event)
         local surface = storage.surfaces[surfaceIndex]
         if isEntityCloudChest(event.entity) then
             if removeEntityFromIndex(surface.cloudChests, event.entity) then
+                return
+            end
+        end
+        if isEntityExportChest(event.entity) then
+            if removeEntityFromIndex(surface.exportChests or {}, event.entity) then
                 return
             end
         end

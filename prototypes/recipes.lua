@@ -113,6 +113,7 @@ else
     data:extend({
         recipe("crafting", 1, "ms-cloud-access-module", items("ms-resonating-quartz", 1, "electronic-circuit", 5), items("ms-cloud-access-module", 1)),
         recipe("crafting", 1, "ms-cloud-chest", items("ms-resonating-quartz", 1, "iron-chest", 1), items("ms-cloud-chest", 1)),
+        recipe("crafting", 1, "ms-cloud-export-chest", items("ms-resonating-quartz", 2, "iron-chest", 1), items("ms-cloud-export-chest", 1)),
         recipe("crafting", 1, "ms-cloud-logistic-chest", items("ms-resonating-quartz", 1, "storage-chest", 1), items("ms-cloud-logistic-chest", 1)),
         recipe("crafting", 20, "ms-resonating-quartz", items("ms-fine-quartz", 1, "copper-cable", 20), items("ms-resonating-quartz", 1), true),
         {
