@@ -13,7 +13,6 @@ local function createPlan (inventory)
                 local itemId = filter.name
                 local stackSize = prototypes.item[itemId].stack_size
                 local quality = filter.quality
-
                 if not buffer[quality] then
                     buffer[quality] = {}
                 end
@@ -233,7 +232,8 @@ script.on_nth_tick(30, function()
     table.insert(hubInventoryTable, hubInventory)
     serveMaterialChests(hubInventoryTable, driveInventories)
 
-    table.insert(driveInventories, hubInventory) -- pretending hub chest is another hard drive with lowest priority
+    -- pretending hub chest is an another hard drive with lowest priority
+    table.insert(driveInventories, hubInventory)
     serveMaterialChests(materialInventories, driveInventories)
     for _, surface in pairs(storage.surfaces or {}) do
         local context = createContext(surface.cloudChests, surface.machines)
@@ -246,7 +246,6 @@ script.on_nth_tick(30, function()
         for _, machine in pairs(surface.machines) do
             if isModuleInstalled(machine, MATERIAL_STORAGE_MODULE) then
                 if machine.type ~= "rocket-silo" then
-                    game.get_player(1).print("Trying to output material machine")
                     serveOutput(machine.get_output_inventory(), driveInventories)
                 end
                 serveMachine(machine, driveInventories, {})
@@ -281,7 +280,6 @@ local function entityPlacementHandler (entity)
         end
         if isEntityMaterialChest(entity) then
             table.insert(storage.materialChests, entity)
-            -- game.get_player(1).print("Registered material chest or material logistic chest (" .. #storage.materialChests .. ")")
             return
         end
         if storage.combinators == nil then
@@ -289,7 +287,6 @@ local function entityPlacementHandler (entity)
         end
         if isEntityCombinator(entity) then
             table.insert(storage.combinators, entity)
-            -- game.get_player(1).print("Registered combinator (" .. #storage.combinators .. ")")
             return
         end
         if storage.surfaces == nil then
@@ -300,12 +297,10 @@ local function entityPlacementHandler (entity)
         end
         if isEntityCloudChest(entity) then
             table.insert(storage.surfaces[surfaceIndex].cloudChests, entity)
-            -- game.get_player(1).print("Registered cloud chest or cloud logistic chest (" .. #storage.surfaces[surfaceIndex].cloudChests .. ")")
             return
         end
         if isEntityMachine(entity) then
             table.insert(storage.surfaces[surfaceIndex].machines, entity)
-            -- game.get_player(1).print("Registered suitable machine (" .. #storage.surfaces[surfaceIndex].machines .. ")")
             return
         end
     end
@@ -332,13 +327,11 @@ local function entityRemovalHandler (event)
     if event.entity and event.entity.valid then
         if isEntityMaterialChest(event.entity) then
             if removeEntityFromIndex(storage.materialChests, event.entity) then
-                -- game.get_player(1).print("Removed material chest or material logistic chest (" .. #storage.materialChests .. ")")
                 return
             end
         end
         if isEntityCombinator(event.entity) then
             if removeEntityFromIndex(storage.combinators, event.entity) then
-                -- game.get_player(1).print("Removed material combinator (" .. #storage.combinators .. ")")
                 return
             end
         end
@@ -352,13 +345,11 @@ local function entityRemovalHandler (event)
         local surface = storage.surfaces[surfaceIndex]
         if isEntityCloudChest(event.entity) then
             if removeEntityFromIndex(surface.cloudChests, event.entity) then
-                -- game.get_player(1).print("Removed cloud chest or cloud logistic chest (" .. #surface.cloudChests .. ")")
                 return
             end
         end
         if isEntityMachine(event.entity) then
             if removeEntityFromIndex(surface.machines, event.entity) then
-                -- game.get_player(1).print("Removed machine (" .. #surface.machines .. ")")
                 return
             end
         end
