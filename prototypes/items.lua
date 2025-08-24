@@ -1,5 +1,4 @@
 local GRAPHICS = "__material-storage-2__/graphics/items/"
-local EQUIPMENT = "__material-storage-2__/graphics/equipment/"
 
 local function item (subgroup, itemId, stackSize)
     return {

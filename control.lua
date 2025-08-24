@@ -332,10 +332,13 @@ local function entityPlacementHandler (entity)
     end
 end
 
-script.on_event(defines.events.on_built_entity, function(event) entityPlacementHandler(event.entity, event.player) end)
-script.on_event(defines.events.on_robot_built_entity, function(event) entityPlacementHandler(event.entity, event.player) end)
-script.on_event(defines.events.on_entity_cloned, function(event) entityPlacementHandler(event.destination, event.player) end)
-script.on_event(defines.events.on_space_platform_built_entity, function(event) entityPlacementHandler(event.entity, event.player) end)
+script.on_event(defines.events.on_built_entity, function(event) entityPlacementHandler(event.entity) end)
+script.on_event(defines.events.on_robot_built_entity, function(event) entityPlacementHandler(event.entity) end)
+script.on_event(defines.events.on_entity_cloned, function(event) entityPlacementHandler(event.destination) end)
+script.on_event(defines.events.on_space_platform_built_entity, function(event) entityPlacementHandler(event.entity) end)
+
+script.on_event(defines.events.script_raised_built, function(event) entityPlacementHandler(event.entity) end)
+script.on_event(defines.events.script_raised_revive, function(event) entityPlacementHandler(event.entity) end)
 
 local function removeEntityFromIndex (entityList, entity)
     if entityList then
