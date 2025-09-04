@@ -78,6 +78,7 @@ if not mods["material-storage"] then
         recipe("crafting", 1, "ms-material-combinator", items("ms-resonating-quartz", 1, "constant-combinator", 1), items("ms-material-combinator", 1)),
         recipe("crafting", 1, "ms-material-logistic-chest", items("ms-resonating-crystal", 1, "buffer-chest", 1), items("ms-material-logistic-chest", 1)),
         recipe("crafting", 20, "ms-resonating-crystal", items("ms-material-crystal", 1, "advanced-circuit", 5), items("ms-resonating-crystal", 1), true),
+        recipe("crafting", 0.1, "ms-resonating-crystal-1", items("ms-material-crystal-charged", 1), items("ms-resonating-crystal", 1), false),
         {
             type = "recipe",
             name = "ms-material-crystal",

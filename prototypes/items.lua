@@ -85,6 +85,7 @@ if not mods["material-storage"] then
         machine("ms-chests", "ms-material-combinator", 50),
         machine("ms-chests", "ms-material-logistic-chest", 50),
         item("ms-details", "ms-material-crystal", 50),
+        item("ms-details", "ms-material-crystal-charged", 50),
     })
     for _, digitalFluidId in pairs(require("fluid-map")) do
         data:extend({
